@@ -6,8 +6,8 @@ import pandas as pd
 from lifelines import NelsonAalenFitter
 from sklearn.utils import check_random_state
 
-from random_survival_forest.scoring import concordance_index
-from random_survival_forest.splitting import _find_split
+from LTRCSurvivalTree.scoring import concordance_index
+from LTRCSurvivalTree.splitting import _find_split
 
 
 class RandomSurvivalForest:
