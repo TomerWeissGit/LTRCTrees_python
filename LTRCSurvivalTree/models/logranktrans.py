@@ -22,6 +22,10 @@ class SurvivalData:
                 raise e.with_traceback(tb)
 
     def log_rank_transformation(self):
+        """
+
+        :return:
+        """
 
         # Fit IC survival curve
         kmf = KaplanMeierFitter()
