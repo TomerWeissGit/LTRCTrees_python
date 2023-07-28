@@ -18,10 +18,14 @@ class SurvivalData:
                 self.survival_data = data.loc[:, ['time1', 'time2', 'event']].copy()
             except LookupError as e:
                 tb = sys.exception().__traceback__
-                print("Response must be a 'Survival' object with Surv(time1,time2,event) format")
+                print("Response must be a 'pd.DataFrame' object with time1,time2,event columns.")
                 raise e.with_traceback(tb)
 
     def log_rank_transformation(self):
+        """
+
+        :return:
+        """
 
         # Fit IC survival curve
         kmf = KaplanMeierFitter()
