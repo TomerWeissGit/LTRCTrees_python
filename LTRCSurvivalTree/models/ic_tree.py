@@ -1,48 +1,20 @@
 from __future__ import annotations
 
-import sys
 import numpy as np
 import pandas as pd
 from citrees import CITreeRegressor
 from lifelines import KaplanMeierFitter
-
-
-class SurvivalData(pd.DataFrame):
-
-    def __init__(self, data: pd.DataFrame):
-        """
-        :param data: a pd.DataFrame with time1,time2,event columns or a pd.DataFrame with only three columns ordered by
-        left truncation, right censoring and an event column.
-        """
-        pd.DataFrame.__init__(self)
-        if data.shape[1] == 3:
-            self.survival_data = data.copy()
-            self.survival_data.columns = ['time1', 'time2', 'event']
-        else:
-            try:
-                self.survival_data = data.loc[:, ['time1', 'time2', 'event']].copy()
-
-            except LookupError as e:
-                tb = sys.exception().__traceback__
-                print("Response must be a 'pd.DataFrame' object with time1,time2,event columns.")
-                raise e.with_traceback(tb)
-            try:
-                self.survival_data.loc[:, 'time1'] = self.survival_data.loc[:, 'time1'].astype(int)
-                self.survival_data.loc[:, 'time2'] = self.survival_data.loc[:, 'time2'].astype(int)
-            except ValueError as e:
-                tb = sys.exception().__traceback__
-                print("Response must be from a integer type columns.")
-                raise e.with_traceback(tb)
+from survival_data import SurvivalData
 
 
 class ICTree:
 
-    def __init__(self, survival_data: SurvivalData, x: pd.DataFrame | np.matrix,
+    def __init__(self, survival_data_obj: SurvivalData, x: pd.DataFrame | np.matrix,
                  control=None, weights: list | pd.Series | None = None):
 
         """
       :param weights: a vector of weights for the survival data, usually set to None.
-      :param survival_data: a SurvivalData object
+      :param survival_data_obj: a SurvivalData object
       :param x: pd.DataFrame containing the independent variables.
       :param control: dict object containing the control values entering the CItree regressor.
       TODO: write more informative information about this control possible parameters, i.e.(alpha,selector...)
@@ -56,8 +28,9 @@ class ICTree:
         self.control = control
 
         self.weights = weights
-        self.data = survival_data.copy()
+        self.data = survival_data_obj.survival_data.copy()
         self.control = control
+        self.survival_data_obj = survival_data_obj
         self.x = x
 
     def ic_tree(self):
@@ -91,10 +64,10 @@ class ICTree:
     @staticmethod
     def log_rank_transformation(survival_data: SurvivalData) -> pd.Series:
         """
-      TODO: write more informative information about this function
-      The function gets Interval censored survival data and returns log rank transformation
-      :return: pd.Series of log rank transformation
-      """
+        TODO: write more informative information about this function
+        The function gets Interval censored survival data and returns log rank transformation
+        :return: pd.Series of log rank transformation
+        """
 
         # Fit IC survival curve
         kmf = KaplanMeierFitter()

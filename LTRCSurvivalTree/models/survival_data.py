@@ -30,22 +30,3 @@ class SurvivalData(pd.DataFrame):
             tb = sys.exception().__traceback__
             print("Response must be from a integer type columns.")
             raise e.with_traceback(tb)
-
-    def log_rank_transformation(self):
-        """
-
-        :return:
-        """
-
-        # Fit IC survival curve
-        kmf = KaplanMeierFitter()
-        kmf.fit_interval_censoring(self.survival_data['time1'], self.survival_data['time2'])
-        # get estimated survival
-        left_predicted = 1 - kmf.cumulative_density_at_times(self.survival_data['time1'])
-        right_predicted = 1 - kmf.cumulative_density_at_times(self.survival_data['time2'])
-
-        log_left = 0 if left_predicted <= 0 else left_predicted * np.log(left_predicted)
-        log_right = 0 if right_predicted <= 0 else right_predicted * np.log(right_predicted)
-        result = (log_left - log_right) / (left_predicted - right_predicted)
-
-        return result
