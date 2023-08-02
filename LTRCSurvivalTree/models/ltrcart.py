@@ -4,6 +4,9 @@ import numpy as np
 import pandas as pd
 from typing import Optional
 from lifelines import CoxPHFitter
+from sklearn.tree import DecisionTreeRegressor
+from sksurv.tree import SurvivalTree
+
 
 #' Fit a relative risk survival tree for LTRC data
 #'
@@ -115,25 +118,38 @@ from lifelines import CoxPHFitter
 from survival_data import SurvivalData
 
 class LTRCart:
-    def __init__(self,survival_data_obj: SurvivalData, x:pd.DataFrame, weights: Optional[Iterable] = None,
-                 subset: Optional[Iterable] = None, no_se: Optional[float] = 0.0, control: Optional[dict] = None):
+    def __init__(self,survival_data_obj: SurvivalData, x:pd.DataFrame, weights: Optional[Iterable] = None, no_se: Optional[float] = 0.0, control: Optional[dict] = None):
         self.data = survival_data_obj.survival_data.copy()
         self.weights = weights
-        self.subset = subset
         self.no_se = no_se
         self.control = control
         self.x =x
+
     def ltrc_art(self):
         y = self.data
         x = self.x
         status = self.data.event.copy()
         times = self.data.time2.copy()
         unique_death_times = times[status==1]
-        cox_ph = CoxPHFitter(self.data~1)
+        cox_ph = CoxPHFitter()
         cox_baseline_cum_hazard = cox_ph.fit(self.data,'time2','event').baseline_cumulative_hazard_
-        cox_baseline_cum_hazard = cox_baseline_cum_hazard[~cox_baseline_cum_hazard.isin([np.nan, np.inf, -np.inf]).any(1)]
-        cox_baseline_hazard_death = cox_baseline_cum_hazard.loc[cox_baseline_cum_hazard.time.isin(unique_death_times)]
+        # remove inf hazard and Nones.
+        cox_baseline_cum_hazard = (cox_baseline_cum_hazard[~cox_baseline_cum_hazard
+                                    .isin([np.nan, np.inf, -np.inf]).any(1)])
+        cox_baseline_hazard_death = cox_baseline_cum_hazard.loc[cox_baseline_cum_hazard.index.isin(unique_death_times)]
+        cum_haz_times = [0]+list(cox_baseline_hazard_death.index)[:-1]+[times.max()]
+        cum_haz = [0]+ list(cox_baseline_hazard_death.iloc[:,0])
 
+        start_time_cum_hazard = np.interp(cum_haz_times, cum_haz, [0]+list(y.time1))
+        end_time_cum_hazard = np.interp(cum_haz_times, cum_haz, [0]+list(y.time2))
+        new_time = end_time_cum_hazard-start_time_cum_hazard
+        new_surv_df = pd.DataFrame({'event':status,'time':new_time})
+        tree_model =DecisionTreeRegressor(criterion="poisson",**self.control)
+        tree_model.fit(X=self.x,y=new_surv_df,sample_weight=self.weights)
+
+        Newtime < - End.cumhaz - Start.cumhaz
+        Formula = formula(paste(c(paste("cbind(Newtime,", "Status)", sep=""), predictors), collapse="~"))
+        tree_model < - rpart::rpart(formula=Formula, method="poisson", weights=weights, subset=subset, control=control)
 
 
 LTRCART <- function(formula, data, weights=NULL, subset = NULL, no.SE = 0, control = rpart::rpart.control(cp = 0.001)){
