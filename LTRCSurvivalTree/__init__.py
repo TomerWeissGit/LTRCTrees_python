@@ -7,5 +7,5 @@ The annals of applied statistics, 2(3), 841-860.
 
 """
 
-from LTRCSurvivalTree.models import logranktrans, ic_tree
+from LTRCSurvivalTree.models import survival_data, ic_tree
 from LTRCSurvivalTree import scoring
