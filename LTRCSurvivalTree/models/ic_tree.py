@@ -13,13 +13,11 @@ class ICTree:
                  control=None, weights: list | pd.Series | None = None):
 
         """
-      :param weights: a vector of weights for the survival data, usually set to None.
-      :param survival_data_obj: a SurvivalData object
-      :param x: pd.DataFrame containing the independent variables.
-      :param control: dict object containing the control values entering the CItree regressor.
-      TODO: write more informative information about this control possible parameters, i.e.(alpha,selector...)
-
-      """
+        :param weights: a vector of weights for the survival data, usually set to None.
+        :param survival_data_obj: a SurvivalData object
+        :param x: pd.DataFrame containing the independent variables.
+        :param control: dict object containing the control values entering the CItree regressor.
+        """
 
         if control is None:
             control = {"min_samples_split": 2, "alpha": .05, "selector": 'pearson', "max_depth": -1, "max_feats": -1,
@@ -33,7 +31,13 @@ class ICTree:
         self.survival_data_obj = survival_data_obj
         self.x = x
 
-    def ic_tree(self):
+    def ic_tree(self) -> CITreeRegressor:
+        """
+        The function fits a @citrees.CITreeRegressor with the interval-censored survival data, it uses
+        ICTree.log_rank_transformation (which uses @lifelines.KaplanMeierFitter)in order to transform the survival data
+        into a single vector log_rank as y.
+        :return:A fitted citrees.CITreeRegressor
+        """
         left = self.data.time1
         right = self.data.time2
         if sum((left - right) == 0) >= 1:
@@ -49,7 +53,7 @@ class ICTree:
             raise ValueError("all values in right side of interval are Infinity, unable to compute")
         # replace infinity values with max value*100
         self.data.time2[np.isinf(right).values] = right[~np.isinf(right).values].max() * 100
-        y = self.h2(None)
+        y = self.h2(self.weights)
         regressor = CITreeRegressor(**self.control)
         regressor.fit(X=self.x, y=y)
         return regressor
@@ -64,8 +68,8 @@ class ICTree:
     @staticmethod
     def log_rank_transformation(survival_data: SurvivalData) -> pd.Series:
         """
-        TODO: write more informative information about this function
-        The function gets Interval censored survival data and returns log rank transformation
+        The function gets Interval censored survival data and returns log rank transformation using
+         @lifelines.KaplanMeierFitter in order to get cumulative density and later on calculate the log rank.
         :return: pd.Series of log rank transformation
         """
 
