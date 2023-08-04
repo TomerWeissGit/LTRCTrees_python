@@ -16,11 +16,13 @@ class LTRCart:
                  number_of_se_from_ccp: Optional[float] = 0.0, control: Optional[dict] = None):
         """
 
-        :param survival_data_obj:
-        :param x:
-        :param weights:
-        :param number_of_se_from_ccp:
-        :param control:
+        :param survival_data_obj: SurvivalData type object (contains time1,time2,status)
+        :param x: explaining variables pd.DataFrame to fit the decision tree regressor
+        :param weights: tuple or list of weights to fit the decision tree regressor,
+        see sklearn.tree.DecisionTreeRegressor.fit() param for more info.
+        :param number_of_se_from_ccp: number of cross validation SE willing to take from the best ccp got in cv.
+        :param control: control params to fit into the DecisionTreeRegressor, see sklearn.tree.DecisionTreeRegressor
+        for more info. should be a dictionary containing the param name as key and param value as value.
         """
         self.data = survival_data_obj.survival_data.copy()
         self.weights = weights
@@ -29,12 +31,17 @@ class LTRCart:
         self.x = x
 
     def create_survival_data(self) -> pd.DataFrame:
+        """
+        :return: pd.DataFrame with an event and time columns where the event column is equal to the status column of the
+        survival_data_obj and the time column is the diff between the transformation from coxPH model prediction and
+        then linear interpolation of those predictions for time1 and time2 of the survival_data_obj entered.,
+        """
         y = self.data
         status = self.data.event.copy()
         times = self.data.time2.copy()
         unique_death_times = times[status == 1]
         cox_ph = CoxPHFitter()
-        cox_baseline_cum_hazard = cox_ph.fit(self.data, 'time2', 'event').baseline_cumulative_hazard_
+        cox_baseline_cum_hazard = cox_ph.fit(y, 'time2', 'event').baseline_cumulative_hazard_
         # remove inf hazard and Nones.
         cox_baseline_cum_hazard = (cox_baseline_cum_hazard[~cox_baseline_cum_hazard
                                    .isin([np.nan, np.inf, -np.inf]).any(1)])
@@ -48,7 +55,15 @@ class LTRCart:
         survival_df = pd.DataFrame({'event': status, 'time': new_time})
         return survival_df
 
-    def ltrc_art_fit(self):
+    def ltrc_art_fit(self) -> DecisionTreeRegressor(criterion='poisson'):
+        """
+        The function fits an LTRCart tree with the given survival data.
+        *Important Note*: The function uses cv in order to find the best ccp parameter to prune the tree, it is therefor
+        time-consuming and difficult to use for random forest method without extensive parallel computing.
+        :return: the function returns an @sklearn.tree.DecisionTreeRegressor with Poisson as its criterion, the
+        regressor is fitted with the survival data entered after applying relevant data
+        transformation(LTRCART.create_survival_data) and pruning the tree using best_ccp from a cv grid search.
+        """
         tmp_survival_df = self.create_survival_data()
         tree_model = DecisionTreeRegressor(criterion="poisson", **self.control)
         tree_model.fit(X=self.x, y=tmp_survival_df, sample_weight=self.weights)
@@ -61,7 +76,7 @@ class LTRCart:
                                    cv=10, verbose=0, pre_dispatch='2*n_jobs', error_score=0)
         best_ccp = grid_search.best_params_['ccp_alpha']
         if self.number_of_se_from_ccp == 0:
-            clf = DecisionTreeRegressor(ccp_alpha=best_ccp)
+            clf = DecisionTreeRegressor(ccp_alpha=best_ccp, **self.control)
             clf.fit(X=self.x, y=tmp_survival_df, sample_weight=self.weights)
         else:
             best_score = grid_search.best_score_
@@ -70,6 +85,6 @@ class LTRCart:
 
             se_from_best_score = best_score+cv_std*self.number_of_se_from_ccp
             ccp = cv_results.loc[cv_results.mean_test_score <= se_from_best_score, 'param_ccp_alpha'].max()
-            clf = DecisionTreeRegressor(ccp_alpha=ccp)
+            clf = DecisionTreeRegressor(ccp_alpha=ccp, **self.control)
             clf.fit(X=self.x, y=tmp_survival_df, sample_weight=self.weights)
         return clf
