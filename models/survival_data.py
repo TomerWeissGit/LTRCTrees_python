@@ -1,9 +1,10 @@
 import sys
-import numpy as np
-from lifelines import KaplanMeierFitter
+
 import pandas as pd
+from dataclasses import dataclass
 
 
+@dataclass
 class SurvivalData(pd.DataFrame):
 
     def __init__(self, data: pd.DataFrame):
@@ -17,7 +18,7 @@ class SurvivalData(pd.DataFrame):
             self.survival_data.columns = ['time1', 'time2', 'event']
         else:
             try:
-                self.survival_data = data.loc[:, ['time1', 'time2', 'event']].copy()
+                self.survival_data = data.loc[['time1', 'time2', 'event']].copy()
 
             except LookupError as e:
                 tb = sys.exception().__traceback__

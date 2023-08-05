@@ -27,7 +27,8 @@ class LTRCart:
         self.data = survival_data_obj.survival_data.copy()
         self.weights = weights
         self.number_of_se_from_ccp = number_of_se_from_ccp
-        self.control = control
+        if control is None:
+            self.control = dict()
         self.x = x
 
     def create_survival_data(self) -> pd.DataFrame:
@@ -44,14 +45,14 @@ class LTRCart:
         cox_baseline_cum_hazard = cox_ph.fit(y, 'time2', 'event').baseline_cumulative_hazard_
         # remove inf hazard and Nones.
         cox_baseline_cum_hazard = (cox_baseline_cum_hazard[~cox_baseline_cum_hazard
-                                   .isin([np.nan, np.inf, -np.inf]).any(1)])
+        .isin([np.nan, np.inf, -np.inf]).any(1)])
         cox_baseline_hazard_death = cox_baseline_cum_hazard.loc[cox_baseline_cum_hazard.index.isin(unique_death_times)]
-        cum_haz_times = [0]+list(cox_baseline_hazard_death.index)[:-1]+[times.max()]
+        cum_haz_times = [0] + list(cox_baseline_hazard_death.index)[:-1] + [times.max()]
         cum_haz = [0] + list(cox_baseline_hazard_death.iloc[:, 0])
 
-        start_time_cum_hazard = np.interp(cum_haz_times, cum_haz, [0]+list(y.time1))
-        end_time_cum_hazard = np.interp(cum_haz_times, cum_haz, [0]+list(y.time2))
-        new_time = end_time_cum_hazard-start_time_cum_hazard
+        start_time_cum_hazard = np.interp(list(y.time1), cum_haz_times, cum_haz)
+        end_time_cum_hazard = np.interp(list(y.time2), cum_haz_times, cum_haz)
+        new_time = end_time_cum_hazard - start_time_cum_hazard
         survival_df = pd.DataFrame({'event': status, 'time': new_time})
         return survival_df
 
@@ -66,14 +67,16 @@ class LTRCart:
         """
         tmp_survival_df = self.create_survival_data()
         tree_model = DecisionTreeRegressor(criterion="poisson", **self.control)
+
         tree_model.fit(X=self.x, y=tmp_survival_df, sample_weight=self.weights)
         # pruning the tree
         path = tree_model.cost_complexity_pruning_path(self.x, tmp_survival_df, self.weights)
         ccp_alphas, impurities = path.ccp_alphas, path.impurities
         # applying gridsearch to get the best ccp_alpha
         grid_search = GridSearchCV(DecisionTreeRegressor(criterion="poisson", **self.control),
-                                   param_grid={'ccp_alpha': ccp_alphas}, scoring='r2', n_jobs=3,
+                                   param_grid={'ccp_alpha': ccp_alphas}, scoring='neg_mean_poisson_deviance', n_jobs=3,
                                    cv=10, verbose=0, pre_dispatch='2*n_jobs', error_score=0)
+        grid_search.fit(self.x, tmp_survival_df)
         best_ccp = grid_search.best_params_['ccp_alpha']
         if self.number_of_se_from_ccp == 0:
             clf = DecisionTreeRegressor(ccp_alpha=best_ccp, **self.control)
