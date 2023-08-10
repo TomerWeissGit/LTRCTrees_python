@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 @dataclass
 class SurvivalData(pd.DataFrame):
+    survival_data = pd.DataFrame()
 
     def __init__(self, data: pd.DataFrame):
         """
@@ -13,20 +14,21 @@ class SurvivalData(pd.DataFrame):
         left truncation, right censoring and an event column.
         """
         pd.DataFrame.__init__(self)
+
         if data.shape[1] == 3:
             self.survival_data = data.copy()
-            self.survival_data.columns = ['time1', 'time2', 'event']
+            self.survival_data.columns = ('time1', 'time2', 'event')
         else:
             try:
-                self.survival_data = data.loc[['time1', 'time2', 'event']].copy()
+                self.survival_data = data.loc[['time1', 'time2', 'event']]
 
             except LookupError as e:
                 tb = sys.exception().__traceback__
                 print("Response must be a 'pd.DataFrame' object with time1,time2,event columns.")
                 raise e.with_traceback(tb)
         try:
-            self.survival_data.loc[:, 'time1'] = self.survival_data.loc[:, 'time1'].astype(int)
-            self.survival_data.loc[:, 'time2'] = self.survival_data.loc[:, 'time2'].astype(int)
+            self.survival_data.loc[:, 'time1'] = self.survival_data.loc[:, 'time1'].astype(float)
+            self.survival_data.loc[:, 'time2'] = self.survival_data.loc[:, 'time2'].astype(float)
         except ValueError as e:
             tb = sys.exception().__traceback__
             print("Response must be from a integer type columns.")
