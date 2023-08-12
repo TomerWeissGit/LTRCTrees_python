@@ -32,7 +32,7 @@ class LTRCart:
             self.control = dict()
         self.x = x
 
-    def create_survival_data(self) -> pd.DataFrame:
+    def create_ltrcart_data(self) -> pd.DataFrame:
         """
         :return: pd.DataFrame with an event and time columns where the event column is equal to the status column of the
         survival_data_obj and the time column is the diff between the transformation from coxPH model prediction and
@@ -54,8 +54,8 @@ class LTRCart:
         start_time_cum_hazard = np.interp(list(y.time1), cum_haz_times, cum_haz)
         end_time_cum_hazard = np.interp(list(y.time2), cum_haz_times, cum_haz)
         cum_haz_diff = end_time_cum_hazard - start_time_cum_hazard
-        survival_df = pd.DataFrame({'event': status, 'haz_diff': cum_haz_diff})
-        return survival_df
+        poisson_df = pd.DataFrame({'event': status, 'haz_diff': cum_haz_diff})
+        return poisson_df
 
     def ltrc_art_fit(self) -> DecisionTreeRegressor(criterion='poisson'):
         """
@@ -66,15 +66,20 @@ class LTRCart:
         regressor is fitted with the survival data entered after applying relevant data
         transformation(LTRCART.create_survival_data) and pruning the tree using best_ccp from a cv grid search.
         """
-        new_survival_df = self.create_survival_data()
-        est_survival_time = new_survival_df.event/new_survival_df.haz_diff
+        poisson_df = self.create_ltrcart_data()
+        est_survival_time = poisson_df.haz_diff
+        event = poisson_df.event
+
         tree_model = DecisionTreeRegressor(criterion="poisson", **self.control)
 
-        tree_model.fit(X=self.x, y=est_survival_time, sample_weight=self.weights)
+        tree_model.fit(X=self.x, y=pd.DataFrame([est_survival_time, event]).T, sample_weight=self.weights)
         # pruning the tree
+
         path = tree_model.cost_complexity_pruning_path(self.x, est_survival_time, self.weights)
         ccp_alphas, impurities = path.ccp_alphas, path.impurities
+
         # applying gridsearch to get the best ccp_alpha
+
         grid_search = GridSearchCV(DecisionTreeRegressor(criterion="poisson", **self.control),
                                    param_grid={'ccp_alpha': ccp_alphas}, scoring='neg_mean_poisson_deviance',
                                    n_jobs=3, cv=10, verbose=0, pre_dispatch='2*n_jobs', error_score=0)
@@ -91,5 +96,6 @@ class LTRCart:
             se_from_best_score = best_score + cv_std * self.number_of_se_from_ccp
             ccp = cv_results.loc[cv_results.mean_test_score <= se_from_best_score, 'param_ccp_alpha'].max()
             clf = DecisionTreeRegressor(ccp_alpha=ccp, criterion="poisson", **self.control)
-            clf.fit(X=self.x, y=est_survival_time, sample_weight=self.weights)
+            clf.fit(X=self.x, y=pd.DataFrame([est_survival_time, event]).T, sample_weight=self.weights)
+
         return clf
