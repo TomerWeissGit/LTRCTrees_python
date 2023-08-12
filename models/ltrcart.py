@@ -67,15 +67,14 @@ class LTRCart:
         transformation(LTRCART.create_survival_data) and pruning the tree using best_ccp from a cv grid search.
         """
         poisson_df = self.create_ltrcart_data()
-        est_survival_time = poisson_df.haz_diff
-        event = poisson_df.event
+        est_hazard = poisson_df.haz_diff
 
         tree_model = DecisionTreeRegressor(criterion="poisson", **self.control)
 
-        tree_model.fit(X=self.x, y=pd.DataFrame([est_survival_time, event]).T, sample_weight=self.weights)
+        tree_model.fit(X=self.x, y=est_hazard, sample_weight=self.weights)
         # pruning the tree
 
-        path = tree_model.cost_complexity_pruning_path(self.x, est_survival_time, self.weights)
+        path = tree_model.cost_complexity_pruning_path(self.x, est_hazard, self.weights)
         ccp_alphas, impurities = path.ccp_alphas, path.impurities
 
         # applying gridsearch to get the best ccp_alpha
@@ -83,11 +82,11 @@ class LTRCart:
         grid_search = GridSearchCV(DecisionTreeRegressor(criterion="poisson", **self.control),
                                    param_grid={'ccp_alpha': ccp_alphas}, scoring='neg_mean_poisson_deviance',
                                    n_jobs=3, cv=10, verbose=0, pre_dispatch='2*n_jobs', error_score=0)
-        grid_search.fit(self.x, est_survival_time)
+        grid_search.fit(self.x, est_hazard)
         best_ccp = grid_search.best_params_['ccp_alpha']
         if self.number_of_se_from_ccp == 0:
             clf = DecisionTreeRegressor(ccp_alpha=best_ccp, criterion="poisson", **self.control)
-            clf.fit(X=self.x, y=est_survival_time, sample_weight=self.weights)
+            clf.fit(X=self.x, y=est_hazard, sample_weight=self.weights)
         else:
             best_score = grid_search.best_score_
             cv_results = grid_search.cv_results_
@@ -96,6 +95,6 @@ class LTRCart:
             se_from_best_score = best_score + cv_std * self.number_of_se_from_ccp
             ccp = cv_results.loc[cv_results.mean_test_score <= se_from_best_score, 'param_ccp_alpha'].max()
             clf = DecisionTreeRegressor(ccp_alpha=ccp, criterion="poisson", **self.control)
-            clf.fit(X=self.x, y=pd.DataFrame([est_survival_time, event]).T, sample_weight=self.weights)
+            clf.fit(X=self.x, y=est_hazard, sample_weight=self.weights)
 
         return clf
