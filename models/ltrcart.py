@@ -114,7 +114,7 @@ class LTRCart:
             self.fit()
 
         self.x['id_rr'] = self.tree.predict(self.x)
-        key = self.x.id_rr.unique
+        key = self.x.id_rr.unique()
         keys_df = pd.DataFrame({'key': key, 'keys_id': range(len(key))})
 
         list_km = []
