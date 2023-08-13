@@ -102,7 +102,7 @@ class LTRCart:
         self.tree = clf
         return clf
 
-    def predict(self, x_test: pd.DataFrame) -> dict:
+    def predict(self, x_test: pd.DataFrame):
         """
         The function predicts the km curve using the LTRCART algorithm, it simply builds the tree and uses the predicted
         RR as an id, more accurately, it groups the train data by the node of the tree which the train obs got to, then,
@@ -112,27 +112,35 @@ class LTRCart:
         """
         if self.tree is None:
             self.fit()
+        x = self.x.copy()
+        x['id_rr'] = self.tree.predict(x)
+        key = x.id_rr.unique()
+        keys_df = pd.DataFrame({'key': key, 'key_id': range(len(key))})
 
-        self.x['id_rr'] = self.tree.predict(self.x)
-        key = self.x.id_rr.unique
-        keys_df = pd.DataFrame({'key': key, 'keys_id': range(len(key))})
-
-        list_km = []
-        list_med = []
+        list_km = [None]*len(key)
+        list_med = [None]*len(key)
 
         for p in key:
-            subset = self.x.loc[self.x.id_rr == p]
+            subset = x.loc[x.id_rr == p]
             y = self.data.copy()
             y = y.loc[subset.index]
             km_fitter = lifelines.KaplanMeierFitter()
-            km_fitter.fit(duration=y.time2, event_observed=y.event, entry=y.time1)
+            km_fitter.fit(durations=y.time2, event_observed=y.event, entry=y.time1)
             sub_group_med_survival_time = km_fitter.median_survival_time_
-            key_id = keys_df.loc[keys_df.key == p, 'keys_id']
-            list_km[key_id] = km_fitter
-            list_med[key_id] = sub_group_med_survival_time
+            key_id = keys_df.loc[keys_df.key == p, 'key_id']
+            for id in key_id:
+                list_km[id] = km_fitter
+                list_med[id] = sub_group_med_survival_time
         test = x_test.copy()
-        test['key'] = self.tree.predict(x_test)
-        test['keys_id'] = test.key.map(lambda x: keys_df.loc[keys_df.key == x, 'keys_id'])
-        test_km = list_km[test.keys_id.values]
-        test_med = list_med[test.keys_id.values]
+        test['key'] = self.tree.predict(test)
+        test['key_id'] = None
+        for key in test.key:
+            test.loc[test.key == key, 'key_id'] = keys_df.loc[keys_df.key == key, 'key_id'].values[0]
+        test_km = []
+        test_med = []
+        for index in test.key_id:
+            test_km.append(list_km[index])
+            test_km.append(list_km[index])
+
+            test_med = [list_med[index] for index in test.key_id]
         return {'km_curves': test_km, 'medians': test_med}
