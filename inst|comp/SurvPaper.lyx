@@ -4,41 +4,29 @@
 \begin_header
 \save_transient_properties true
 \origin unavailable
-\textclass apa6
-\options jou
-\use_default_options false
-\begin_modules
-natbibapa
-\end_modules
+\textclass article
+\use_default_options true
 \maintain_unincluded_children false
-\begin_local_layout
-Style Journal
-LatexName             journal
-LatexType             Command
-#	InTitle               0
-InPreamble            1
-End
-\end_local_layout
 \language english
 \language_package default
 \inputencoding auto
 \fontencoding global
-\font_roman "default" "default"
+\font_roman "default" "Times New Roman"
 \font_sans "default" "default"
 \font_typewriter "default" "default"
 \font_math "auto" "auto"
 \font_default_family default
-\use_non_tex_fonts false
+\use_non_tex_fonts true
 \font_sc false
 \font_osf false
 \font_sf_scale 100 100
 \font_tt_scale 100 100
 \use_microtype false
-\use_dash_ligatures false
+\use_dash_ligatures true
 \graphics default
 \default_output_format default
 \output_sync 0
-\bibtex_command bibtex
+\bibtex_command default
 \index_command default
 \paperfontsize default
 \spacing single
@@ -55,9 +43,11 @@ End
 \use_package stackrel 1
 \use_package stmaryrd 1
 \use_package undertilde 1
-\cite_engine natbib
+\cite_engine biblatex
 \cite_engine_type authoryear
-\biblio_style plainnat
+\biblio_style plain
+\biblatex_bibstyle authoryear
+\biblatex_citestyle authoryear
 \use_bibtopic false
 \use_indices false
 \paperorientation portrait
@@ -77,7 +67,7 @@ End
 \math_numbering_side default
 \quotes_style english
 \dynamic_quotes 0
-\papercolumns 1
+\papercolumns 2
 \papersides 1
 \paperpagestyle default
 \tracking_changes false
@@ -107,7 +97,7 @@ Tree methods are a popular class of non parametric methods for analyzing
  are mainly designed for right-censored data in python.
  We propose a new survival trees package for left-truncated and right-censored
  (LTRC) data based on the existing sklearn implementation of regression
- trees, as did in R.
+ trees, as Fu & Simonoff did in R.
  We'll compare our implementation to 
 \begin_inset CommandInset citation
 LatexCommand citet*
@@ -165,7 +155,7 @@ literal "false"
 \begin_inset Formula $\Lambda_{0}(t)$
 \end_inset
 
- based on all of the LTRC data, 
+ (with the Nelson-Aalen estimator) based on all of the LTRC data, 
 \begin_inset Formula $(L_{i},R_{i},\delta_{i},x_{i})$
 \end_inset
 
@@ -177,7 +167,7 @@ literal "false"
 \begin_inset Formula $R_{i}$
 \end_inset
 
-is the observed survival time/censoring time, 
+ is the observed survival time/censoring time, 
 \begin_inset Formula $\delta_{i}$
 \end_inset
 
@@ -206,7 +196,7 @@ exposure time
 \begin_inset Formula $\hat{\Lambda}_{0}(t)$
 \end_inset
 
- estimated from the previous step.
+, estimated from the previous step.
  The final and third step is to fit a 
 \begin_inset Quotes eld
 \end_inset
@@ -275,7 +265,7 @@ tree
 \end_inset
 
 .
- This obviously will hamper our results, so take that in mind when proceeding.
+ This obviously will hamper our results, so keep that in mind when proceeding.
 \end_layout
 
 \begin_layout Section
@@ -311,49 +301,9 @@ Results
 \end_layout
 
 \begin_layout Standard
-Here the results we got: 
-\end_layout
-
-\begin_layout Standard
-\begin_inset Float figure
-wide true
-sideways false
-status open
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\begin_layout Plain Layout
-\begin_inset Caption Standard
-
-\begin_layout Plain Layout
-fitted LTRCART on creatinine data
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Plain Layout
-\begin_inset Graphics
-	filename creatinine_res.png
-	lyxscale 50
-	scale 20
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-We can see we did not get the same exactly the same results as in 
+The results (Figure 10 and Table 1 reproduction) are presented in the last
+ pages.
+ From them, we can see we did not get exactly the same results as in 
 \begin_inset CommandInset citation
 LatexCommand citeauthor
 key "fu2017survival"
@@ -361,8 +311,7 @@ literal "false"
 
 \end_inset
 
-, but it is a really good considering the model does not see that event
- indicator.
+, but it is quite close considering the model does not see the event indicator.
  
 \end_layout
 
@@ -370,7 +319,8 @@ literal "false"
 For table 1 we'll show the percentage of times the actual tree is the first
  sub-tree (i.e., catching the real important features), as opposed to calculating
  the relative frequency we got the actual tree (like Fu & Simonoff).
- We did this because the tree implementation of 
+ We did this because of the absence of the event indicator in the model
+ and because the tree implementation of 
 \begin_inset Quotes eld
 \end_inset
 
@@ -405,6 +355,7 @@ sideways false
 status open
 
 \begin_layout Plain Layout
+\align center
 \begin_inset Caption Standard
 
 \begin_layout Plain Layout
@@ -419,9 +370,8 @@ Simulations results as in table 1 in Fu and Simonoff
 \begin_layout Plain Layout
 \align center
 \begin_inset Tabular
-<lyxtabular version="3" rows="24" columns="7">
+<lyxtabular version="3" rows="24" columns="6">
 <features tabularvalignment="middle">
-<column alignment="center" valignment="top">
 <column alignment="center" valignment="top">
 <column alignment="center" valignment="top">
 <column alignment="center" valignment="top">
@@ -486,15 +436,6 @@ Simulations results as in table 1 in Fu and Simonoff
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\end_inset
-</cell>
 </row>
 <row>
 <cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
@@ -542,20 +483,11 @@ Weibull-D
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-Log-normal
-\end_layout
-
-\end_inset
-</cell>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
-Bathtub
+Log-normal
 \end_layout
 
 \end_inset
@@ -610,20 +542,11 @@ Light
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-38
-\end_layout
-
-\end_inset
-</cell>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
-
+38
 \end_layout
 
 \end_inset
@@ -678,20 +601,11 @@ Heavy
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-33
-\end_layout
-
-\end_inset
-</cell>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
-
+33
 \end_layout
 
 \end_inset
@@ -746,20 +660,11 @@ Light
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-47
-\end_layout
-
-\end_inset
-</cell>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
-
+47
 \end_layout
 
 \end_inset
@@ -814,20 +719,11 @@ Heavy
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-48
-\end_layout
-
-\end_inset
-</cell>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
-
+48
 \end_layout
 
 \end_inset
@@ -882,20 +778,11 @@ Light
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-43
-\end_layout
-
-\end_inset
-</cell>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
-
+43
 \end_layout
 
 \end_inset
@@ -950,20 +837,11 @@ Heavy
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-36
-\end_layout
-
-\end_inset
-</cell>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
-
+36
 \end_layout
 
 \end_inset
@@ -1027,15 +905,6 @@ Heavy
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\end_inset
-</cell>
 </row>
 <row>
 <cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
@@ -1083,20 +952,11 @@ Weibull-D
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-Log-normal
-\end_layout
-
-\end_inset
-</cell>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
-Bathtub
+Log-normal
 \end_layout
 
 \end_inset
@@ -1151,20 +1011,11 @@ Light
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-77
-\end_layout
-
-\end_inset
-</cell>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
-
+77
 \end_layout
 
 \end_inset
@@ -1219,20 +1070,11 @@ Heavy
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-69
-\end_layout
-
-\end_inset
-</cell>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
-
+69
 \end_layout
 
 \end_inset
@@ -1287,20 +1129,11 @@ Light
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-78
-\end_layout
-
-\end_inset
-</cell>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
-
+78
 \end_layout
 
 \end_inset
@@ -1355,20 +1188,11 @@ Heavy
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-74
-\end_layout
-
-\end_inset
-</cell>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
-
+74
 \end_layout
 
 \end_inset
@@ -1423,20 +1247,11 @@ Light
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-75
-\end_layout
-
-\end_inset
-</cell>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
-
+75
 \end_layout
 
 \end_inset
@@ -1491,20 +1306,11 @@ Heavy
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-78
-\end_layout
-
-\end_inset
-</cell>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
-
+78
 \end_layout
 
 \end_inset
@@ -1568,15 +1374,6 @@ Heavy
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\end_inset
-</cell>
 </row>
 <row>
 <cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
@@ -1624,20 +1421,11 @@ Weibull-D
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-Log-normal
-\end_layout
-
-\end_inset
-</cell>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
-Bathtub
+Log-normal
 \end_layout
 
 \end_inset
@@ -1692,20 +1480,11 @@ Light
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-89
-\end_layout
-
-\end_inset
-</cell>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
-
+89
 \end_layout
 
 \end_inset
@@ -1760,20 +1539,11 @@ Heavy
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-82
-\end_layout
-
-\end_inset
-</cell>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
-
+82
 \end_layout
 
 \end_inset
@@ -1828,20 +1598,11 @@ Light
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-89
-\end_layout
-
-\end_inset
-</cell>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
-
+89
 \end_layout
 
 \end_inset
@@ -1896,20 +1657,11 @@ Heavy
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-85
-\end_layout
-
-\end_inset
-</cell>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
-
+85
 \end_layout
 
 \end_inset
@@ -1964,20 +1716,11 @@ Light
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-81
-\end_layout
-
-\end_inset
-</cell>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
-
+81
 \end_layout
 
 \end_inset
@@ -2032,20 +1775,11 @@ Heavy
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-85
-\end_layout
-
-\end_inset
-</cell>
 <cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
-
+85
 \end_layout
 
 \end_inset
@@ -2055,10 +1789,6 @@ Heavy
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Plain Layout
 
 \end_layout
 
@@ -2122,6 +1852,46 @@ LatexCommand bibtex
 btprint "btPrintCited"
 bibfiles "LTRC_ref"
 options "plain"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Part*
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide true
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+fitted LTRCART on creatinine data
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename creatinine_res.png
+	lyxscale 25
+	scale 20
+	rotateOrigin center
+
+\end_inset
+
+
+\end_layout
 
 \end_inset
 
