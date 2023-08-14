@@ -1,3 +1,3 @@
-# RandomSurvivalTree with Left Truncation
-RandomSurvivalTree with Left Truncation
-The project was meant to insert left truncation into the model so that the powerful, widely used RSF model could be valid for the many existing cases of left truncation data in the growing field of survival analysis.
+# Survival tree regressor with Left Truncation
+Survival Tree with Left Truncation and right censoring.
+The project is meant to replicate some of the work of Wei Fu Jeffrey S. Simonof which was condacted in R and replicate their simulations resuls up to some point. https://arxiv.org/pdf/1606.03033.pdf
